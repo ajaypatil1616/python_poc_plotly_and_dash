@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Stock Data with Periods From yFinace</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <div>
+      <form action="">
+        <label for="stock">Choose your STOCK</label>
+        <select name="stock" id="stock-id">
+          <option value="tcs">TCS</option>
+          <option value="google">Google</option>
+          <option value="bitcoin">BITCOIN</option>
+          <option value="Maruti_Suzuki_India_Limited">Maruti Suzuki India Limited</option>
+          <option value="Cipla_Limited">	Cipla Limited</option>
+          <option value="Wipro_Limited">Wipro Limited</option>
+          <option value="Bajaj_Finance_Limited">	Bajaj Finance Limited</option>
+          <option value="Tata_Steel_Limited">Tata Steel Limited</option>
+          
+        </select>
+
+        <label for="graph">Choose the graph you want</label>
+        <select name="graph" id="graph-id">
+          <option value="line">Line</option>
+          <option value="candlestick">Candlestick</option>
+          <!-- <option value="bar">Bar</option> -->
+          <option value="area">Area</option>
+        </select>
+        
+        <label for="period">Choose the period you want</label>
+        <select name="period" id="period-id">
+          <option value="1d">1 Day</option>
+          <option value="1w">1 Week</option>
+          <option value="1m">1 Month</option>
+          <option value="1y">1 Year</option>
+          <option value="5y">5 Year</option>
+        </select>
+      </form>
+      <br><br>
+      <div id="plotly-dash">
+        <button type="button" onclick="window.location.href='/dash'">Plotly-Dash</button>
+      </div>
+    </div>
+    <div id="graph-container"></div> 
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const stock = document.getElementById("stock-id");
+        const graph = document.getElementById("graph-id");
+        const period = document.getElementById("period-id");
+
+        function fetchDataAndUpdateChart() {
+          const stockValue = stock.value;
+          const graphValue = graph.value;
+          const periodValue = period.value;
+
+         
+
+          fetch("/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ stock: stockValue, graph: graphValue, period: periodValue }),
+          })
+            .then((response) => {
+              
+              return response.json();
+            })
+            .then((data) => {
+             
+              if (data.graph_html) {
+                const graphContainer = document.getElementById("graph-container");
+                graphContainer.innerHTML = "";
+                const graphData = JSON.parse(data.graph_html);
+                Plotly.newPlot("graph-container", graphData.data, graphData.layout);
+              }
+            })
+            .catch((error) => console.log("Error:", error));
+        }
+
+        stock.addEventListener("change", fetchDataAndUpdateChart);
+        graph.addEventListener("change", fetchDataAndUpdateChart);
+        period.addEventListener("change", fetchDataAndUpdateChart);
+
+        
+        setInterval(fetchDataAndUpdateChart,1000)
+
+        fetchDataAndUpdateChart();
+      });
+    </script>
+  </body>
+</html>
